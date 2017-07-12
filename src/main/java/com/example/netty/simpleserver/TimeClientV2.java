@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
  * Created by Administrator on 2017/7/11 0011.
  */
 @Slf4j
-public class TimeClient {
+public class TimeClientV2 {
 
     public static void main(String[] args) {
         int port = 7000;
@@ -33,7 +33,7 @@ public class TimeClient {
             bootstrap.group(workerGroup).channel(NioSocketChannel.class).handler(
                 new ChannelInitializer<SocketChannel>() {
                     protected void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline().addLast(new TimeClientHandler());
+                        ch.pipeline().addLast(new TimeClientHandlerV2());
                     }
                 }).option(ChannelOption.SO_KEEPALIVE, true);
 
@@ -51,20 +51,34 @@ public class TimeClient {
     }
 
     /**
-     * does not handle socket buffer fragments
+     * let the handler count read bytes
      */
     @Slf4j
-    static class TimeClientHandler extends ChannelInboundHandlerAdapter {
+    static class TimeClientHandlerV2 extends ChannelInboundHandlerAdapter {
+
+        private ByteBuf buf;
+
+        @Override
+        public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+            buf = ctx.alloc().buffer(4);
+        }
+
+        @Override
+        public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+            buf.release();
+            buf = null;
+        }
 
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
             ByteBuf m = (ByteBuf) msg;
-            try {
-                long currentTimeMillis = (m.readUnsignedInt() - 2208988800L) * 1000L;
+            buf.writeBytes(m);
+            m.release();
+
+            if (buf.readableBytes() >= 4) {
+                long currentTimeMillis = (buf.readUnsignedInt() - 2208988800L) * 1000L;
                 log.info("{}", new Date(currentTimeMillis));
                 ctx.close();
-            } finally {
-                m.release();
             }
         }
 

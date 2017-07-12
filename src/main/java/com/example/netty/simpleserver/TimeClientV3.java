@@ -11,14 +11,16 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.ByteToMessageDecoder;
 import java.util.Date;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by Administrator on 2017/7/11 0011.
  */
 @Slf4j
-public class TimeClient {
+public class TimeClientV3 {
 
     public static void main(String[] args) {
         int port = 7000;
@@ -33,7 +35,7 @@ public class TimeClient {
             bootstrap.group(workerGroup).channel(NioSocketChannel.class).handler(
                 new ChannelInitializer<SocketChannel>() {
                     protected void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline().addLast(new TimeClientHandler());
+                        ch.pipeline().addLast(new TimeDecoder(), new TimeClientHandlerV3());
                     }
                 }).option(ChannelOption.SO_KEEPALIVE, true);
 
@@ -50,11 +52,18 @@ public class TimeClient {
 
     }
 
-    /**
-     * does not handle socket buffer fragments
-     */
+    static class TimeDecoder extends ByteToMessageDecoder {
+
+        protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out)
+            throws Exception {
+            if (in.readableBytes() >= 4) {
+                out.add(in.readBytes(4));
+            }
+        }
+    }
+
     @Slf4j
-    static class TimeClientHandler extends ChannelInboundHandlerAdapter {
+    static class TimeClientHandlerV3 extends ChannelInboundHandlerAdapter {
 
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
