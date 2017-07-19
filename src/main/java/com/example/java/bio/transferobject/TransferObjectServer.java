@@ -1,5 +1,6 @@
 package com.example.java.bio.transferobject;
 
+import com.example.java.entity.SomeEntity;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;

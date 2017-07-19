@@ -1,6 +1,6 @@
 package com.example.java.bio;
 
-import com.example.java.bio.transferobject.SomeEntity;
+import com.example.java.entity.SomeEntity;
 import com.example.java.bio.transferobject.TransferObjectClient;
 import com.example.java.bio.transferobject.TransferObjectServer;
 import org.junit.Test;
