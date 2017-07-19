@@ -1,4 +1,4 @@
-package com.example.java.nio;
+package com.example.java.nio.echo;
 
 import com.example.java.bio.echo.EchoProtocolConstants;
 import lombok.AllArgsConstructor;

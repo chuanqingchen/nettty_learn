@@ -1,6 +1,8 @@
 package com.example.java.nio;
 
 import com.example.java.bio.echo.EchoServer;
+import com.example.java.nio.echo.NioEchoClient;
+import com.example.java.nio.echo.NioEchoServer;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;

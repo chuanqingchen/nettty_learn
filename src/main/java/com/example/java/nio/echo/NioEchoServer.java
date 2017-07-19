@@ -1,4 +1,4 @@
-package com.example.java.nio;
+package com.example.java.nio.echo;
 
 import lombok.extern.slf4j.Slf4j;
 
