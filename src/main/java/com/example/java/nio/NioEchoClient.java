@@ -1,6 +1,6 @@
 package com.example.java.nio;
 
-import com.example.java.bio.EchoProtocolConstants;
+import com.example.java.bio.echo.EchoProtocolConstants;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

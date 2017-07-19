@@ -1,4 +1,4 @@
-package com.example.java.bio;
+package com.example.java.bio.echo;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @AllArgsConstructor
-public class ServerHandlerThread implements Runnable {
+public class EchoServerHandlerThread implements Runnable {
 
     private Socket socket;
 

@@ -1,7 +1,12 @@
 package com.example.java.bio;
 
-import com.example.java.bio.EchoClient;
-import com.example.java.bio.EchoServer;
+import com.example.java.bio.echo.EchoClient;
+import com.example.java.bio.echo.EchoServer;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
@@ -10,10 +15,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
-import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 
 /**
  * Created by Administrator on 2017/7/18 0018.

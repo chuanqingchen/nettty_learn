@@ -1,17 +1,13 @@
-package com.example.java.bio;
+package com.example.java.bio.echo;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.*;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by Administrator on 2017/7/18 0018.
