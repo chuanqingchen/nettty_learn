@@ -1,6 +1,9 @@
 package com.example.java.nio.transferobject;
 
 import com.example.java.entity.SomeEntity;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -10,8 +13,6 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by ycwu on 2017/7/20.
@@ -53,6 +54,7 @@ public class NioTransferClient implements Runnable {
                     iterator.remove();
 
                     if (key.isWritable()) {
+                        key.interestOps(0);
                         totalRead = doTransfer(socketChannel, buffer, array, totalRead);
                     }
                 }
