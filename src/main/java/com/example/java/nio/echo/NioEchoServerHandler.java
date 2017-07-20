@@ -42,7 +42,6 @@ public class NioEchoServerHandler implements Runnable {
                 socketChannel.write(buffer);
                 buffer.clear();
                 log.info("handler echo:{}", content);
-
             }
         } catch (IOException e) {
             e.printStackTrace();

@@ -16,13 +16,13 @@ import java.util.stream.IntStream;
 public class TestNioTransferObject {
 
     @Test
-    public void testTransferOneObjet() throws InterruptedException {
+    public void testTransferOneObject() throws InterruptedException {
         SomeEntity someEntity = new SomeEntity();
         someEntity.setA(111);
         someEntity.setB("bbbbb");
-        someEntity.setC(IntStream.range(0, 900000).toArray());
+        someEntity.setC(IntStream.range(0, 90000).toArray());
         new Thread(new NioTransferClient("127.0.0.1", NioTransferServer.PORT, someEntity)).start();
 
-        Thread.sleep(2000L);
+        Thread.sleep(3000L);
     }
 }

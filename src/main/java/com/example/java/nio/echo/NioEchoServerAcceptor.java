@@ -39,9 +39,11 @@ public class NioEchoServerAcceptor implements Runnable {
                 Iterator<SelectionKey> iterator = selectionKeySet.iterator();
                 while (iterator.hasNext()) {
                     SelectionKey key = iterator.next();
-
+                    iterator.remove();
+                    key.interestOps(0);
                     if (key.isReadable() && key.isValid()) {
                         log.info("submit handler");
+
                         handlerPool.submit(new NioEchoServerHandler((SocketChannel) key.channel(), key));
                     }
                 }
