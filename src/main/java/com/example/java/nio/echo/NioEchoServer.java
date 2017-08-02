@@ -1,5 +1,7 @@
 package com.example.java.nio.echo;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
@@ -9,7 +11,6 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by Administrator on 2017/7/18 0018.
@@ -42,15 +43,14 @@ public class NioEchoServer {
                 Iterator<SelectionKey> iterator = selectionKeysSet.iterator();
                 while (iterator.hasNext()) {
                     SelectionKey selectionKey = iterator.next();
+                    // selector will not remove selected keys automatically
+                    iterator.remove();
 
                     if (selectionKey.isAcceptable()) {
                         log.info("found acceptable");
                         ServerSocketChannel ssc = (ServerSocketChannel) selectionKey.channel();
                         acceptorPool.submit(new NioEchoServerAcceptor(ssc.accept(), handlerPool));
                     }
-
-                    // selector will not remove selected keys automatically
-                    iterator.remove();
                 }
             }
         }

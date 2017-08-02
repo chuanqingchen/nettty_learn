@@ -1,23 +1,20 @@
 package com.example.java.nio.transferobject;
 
 import com.example.java.entity.SomeEntity;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
+import java.nio.channels.*;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by ycwu on 2017/7/19.
@@ -33,7 +30,7 @@ public class NioTransferServer {
         ExecutorService handlerPool = Executors.newCachedThreadPool();
 
         try (Selector selector = Selector.open();
-            ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+             ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
         ) {
             serverSocketChannel.configureBlocking(false);
             serverSocketChannel.bind(new InetSocketAddress(PORT));
@@ -54,9 +51,9 @@ public class NioTransferServer {
 
                     if (selectedKey.isAcceptable()) {
                         ServerSocketChannel acceptor = (ServerSocketChannel) selectedKey
-                            .channel();
+                                .channel();
                         acceptorPool
-                            .submit(new TransferAcceptorThread(acceptor.accept(), handlerPool));
+                                .submit(new TransferAcceptorThread(acceptor.accept(), handlerPool));
                     }
                 }
             }
@@ -74,9 +71,8 @@ public class NioTransferServer {
 
         @Override
         public void run() {
-
             try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(
-                1024);) {
+                    1024);) {
                 int totalRead = 0;
                 int targetSize = -1;
                 ByteBuffer buffer = ByteBuffer.allocate(1024);
@@ -128,10 +124,10 @@ public class NioTransferServer {
                 if (totalRead == targetSize) {
                     byteArrayOutputStream.flush();
                     try (ObjectInputStream objectInputStream = new ObjectInputStream(
-                        new ByteArrayInputStream(
-                            byteArrayOutputStream.toByteArray()))) {
+                            new ByteArrayInputStream(
+                                    byteArrayOutputStream.toByteArray()))) {
                         SomeEntity someEntity = (SomeEntity) objectInputStream
-                            .readObject();
+                                .readObject();
                         log.info("the object is {}", someEntity);
                     } catch (ClassNotFoundException e) {
                         e.printStackTrace();
@@ -166,16 +162,16 @@ public class NioTransferServer {
                         continue;
                     }
 
-                    Iterator<SelectionKey> iterator = selector.selectedKeys()
-                        .iterator();
+                    Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
                     while (iterator.hasNext()) {
                         SelectionKey key = iterator.next();
                         iterator.remove();
 
                         if (key.isReadable() && key.isValid()) {
+                            // if not de-register OP_READ here, then causes a lot of new threads for repeating handle this channel
                             key.interestOps(0);
                             handlerPool.submit(
-                                new TransferEventHandlerThread((SocketChannel) key.channel(), key));
+                                    new TransferEventHandlerThread((SocketChannel) key.channel(), key));
                         }
                     }
                 }
