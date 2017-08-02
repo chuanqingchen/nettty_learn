@@ -10,6 +10,9 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.LineBasedFrameDecoder;
+import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.string.StringEncoder;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -44,6 +47,10 @@ public class EchoServer {
                 .childHandler(
                     new ChannelInitializer<SocketChannel>() {
                         protected void initChannel(SocketChannel ch) throws Exception {
+                            ch.pipeline().addLast(new LineBasedFrameDecoder(1024));
+                            ch.pipeline().addLast(new StringDecoder());
+
+                            ch.pipeline().addLast(new StringEncoder());
                             ch.pipeline().addLast(new EchoServerHandler());
                         }
                     }).option(ChannelOption.SO_BACKLOG, 128)
@@ -68,9 +75,9 @@ public class EchoServer {
 
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-            ctx.write(msg);
-            ctx.flush();
-            // equals to: ctx.writeAndFlush(msg)
+            ctx.writeAndFlush((String) msg + '\n');
+            // another way, can without StringEncoder :
+            // ctx.writeAndFlush(Unpooled.wrappedBuffer(((String) msg + '\n').getBytes()));
         }
 
         @Override
