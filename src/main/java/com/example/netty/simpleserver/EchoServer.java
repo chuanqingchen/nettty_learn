@@ -1,19 +1,18 @@
 package com.example.netty.simpleserver;
 
+import com.example.netty.handler.HeartBeatHandler;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
+import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Administrator on 2017/7/11 0011.
@@ -21,21 +20,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class EchoServer {
 
-    private int port;
-
-    public EchoServer(int port) {
-        this.port = port;
-    }
+    public static int PORT = 7000;
 
     public static void main(String[] args) {
-        int port;
-        if (args.length > 0) {
-            port = Integer.parseInt(args[0]);
-        } else {
-            port = 7000;
-        }
-
-        new EchoServer(port).run();
+        new EchoServer().run();
     }
 
     public void run() {
@@ -44,19 +32,23 @@ public class EchoServer {
         try {
             ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
-                .childHandler(
-                    new ChannelInitializer<SocketChannel>() {
-                        protected void initChannel(SocketChannel ch) throws Exception {
-                            ch.pipeline().addLast(new LineBasedFrameDecoder(1024));
-                            ch.pipeline().addLast(new StringDecoder());
+                    .childHandler(
+                            new ChannelInitializer<SocketChannel>() {
+                                protected void initChannel(SocketChannel ch) throws Exception {
+                                    ChannelPipeline pipeline = ch.pipeline();
+                                    pipeline.addLast(new IdleStateHandler(true, 3, 5, 20, TimeUnit.SECONDS));
+                                    pipeline.addLast(new HeartBeatHandler());
 
-                            ch.pipeline().addLast(new StringEncoder());
-                            ch.pipeline().addLast(new EchoServerHandler());
-                        }
-                    }).option(ChannelOption.SO_BACKLOG, 128)
-                .childOption(ChannelOption.SO_KEEPALIVE, true);
+                                    pipeline.addLast(new LineBasedFrameDecoder(1024));
+                                    pipeline.addLast(new StringDecoder());
 
-            ChannelFuture future = bootstrap.bind(port).sync();
+                                    pipeline.addLast(new StringEncoder());
+                                    pipeline.addLast(new EchoServerHandler());
+                                }
+                            }).option(ChannelOption.SO_BACKLOG, 128)
+                    .childOption(ChannelOption.SO_KEEPALIVE, true);
+
+            ChannelFuture future = bootstrap.bind(PORT).sync();
 
             log.info("server starts");
             future.channel().closeFuture().sync();
