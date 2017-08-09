@@ -21,12 +21,12 @@ public class EchoClientV2 {
 
     private static final String COMMAND_EXIT = "exit";
     private static final int MAX_LENGTH = 1024;
+    private int maxFailedCount = 5;
 
-    public static void main(String[] args) {
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
-        Scanner scanner = new Scanner(System.in);
-        try {
-            Bootstrap b = new Bootstrap();
+    private EventLoopGroup workerGroup = new NioEventLoopGroup();
+
+    private Channel createChannel0(Bootstrap b, EventLoopGroup workerGroup) throws InterruptedException {
+        if (b != null) {
             b.channel(NioSocketChannel.class).group(workerGroup).handler(new ChannelInitializer<NioSocketChannel>() {
                 @Override
                 protected void initChannel(NioSocketChannel ch) throws Exception {
@@ -38,8 +38,48 @@ public class EchoClientV2 {
                     pipeline.addLast(new EchoClientHandler());
                 }
             }).option(ChannelOption.SO_KEEPALIVE, true);
+        }
 
-            Channel channel = b.connect(new InetSocketAddress("localhost", EchoServer.PORT)).sync().channel();
+        return b.connect(new InetSocketAddress("localhost", EchoServer.PORT)).sync().channel();
+    }
+
+
+    private Channel createChannel() {
+        Channel channel = null;
+        int failedCounter = 0;
+        boolean stop = false;
+        while (!stop) {
+            try {
+                channel = createChannel0(new Bootstrap(), workerGroup);
+            } catch (Exception e) {
+                log.error("reconnecting");
+            }
+
+            if (channel != null && channel.isActive()) {
+                stop = true;
+            } else if (failedCounter < maxFailedCount) {
+                failedCounter++;
+                try {
+                    Thread.sleep(2000L);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                stop = true;
+            }
+        }
+
+        return channel;
+    }
+
+    private void run() {
+        Scanner scanner = new Scanner(System.in);
+        try {
+            Channel channel = createChannel();
+            if (channel == null || !channel.isActive()) {
+                log.error("failed to connect server");
+                return;
+            }
 
             log.info("client starts ok");
             String line;
@@ -58,9 +98,12 @@ public class EchoClientV2 {
                     log.error("message too large, discard");
                 }
 
-                channel.writeAndFlush(Unpooled.wrappedBuffer((line + "\r").getBytes()));
-                log.info("send: {}", line);
+                if (channel == null || !channel.isActive()) {
+                    channel = createChannel();
+                }
 
+                channel.writeAndFlush(Unpooled.wrappedBuffer((line + '\n').getBytes()));
+                log.info("send: {}", line);
             }
 
             channel.closeFuture().sync();
@@ -71,6 +114,10 @@ public class EchoClientV2 {
             scanner.close();
             workerGroup.shutdownGracefully();
         }
+    }
+
+    public static void main(String[] args) {
+        new EchoClientV2().run();
     }
 
     static class EchoClientHandler extends SimpleChannelInboundHandler<String> {

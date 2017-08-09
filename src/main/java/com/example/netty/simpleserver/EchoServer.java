@@ -36,7 +36,7 @@ public class EchoServer {
                             new ChannelInitializer<SocketChannel>() {
                                 protected void initChannel(SocketChannel ch) throws Exception {
                                     ChannelPipeline pipeline = ch.pipeline();
-                                    pipeline.addLast(new IdleStateHandler(true, 3, 5, 20, TimeUnit.SECONDS));
+                                    pipeline.addLast(new IdleStateHandler(true, 60, 60, 0, TimeUnit.SECONDS));
                                     pipeline.addLast(new HeartBeatHandler());
 
                                     pipeline.addLast(new LineBasedFrameDecoder(1024));
@@ -67,6 +67,7 @@ public class EchoServer {
 
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+            log.info("receive:{}", (String) msg);
             ctx.writeAndFlush((String) msg + '\n');
             // another way, can without StringEncoder :
             // ctx.writeAndFlush(Unpooled.wrappedBuffer(((String) msg + '\n').getBytes()));
